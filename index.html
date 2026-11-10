@@ -2308,6 +2308,21 @@ handleRoute();   // 최초 진입 경로 처리 (딥링크·새로고침 대응)
       });
     }
 
+    // add_to_wishlist / remove_from_wishlist — 상품 상세 하트 토글 (클릭 전 찜 상태로 구분)
+    var wish = t.closest('#btn-wishlist-detail');
+    if (wish) {
+      var wp = PRODUCTS.find(function (p) { return p.id === wish.dataset.productId; });
+      if (wp) {
+        track(isWished(wp.id) ? 'remove_from_wishlist' : 'add_to_wishlist', {
+          currency: 'KRW',
+          item_name: wp.name,
+          value: getVariant(wp, selectedVariantId).price,
+          click_location: 'product_detail',
+          login_status: (document.body.dataset.loginStatus || 'logged-out').replace('-', '_')
+        });
+      }
+    }
+
     var card = t.closest(CARD_SEL);
     if (card) track('item_click', { item_name: card.dataset.productName, section: sectionOf(card) });
 
