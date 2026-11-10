@@ -2285,5 +2285,73 @@ tickDealTimer();
 setInterval(tickDealTimer, 1000);
 handleRoute();   // 최초 진입 경로 처리 (딥링크·새로고침 대응)
 </script>
+<!-- GA4 이벤트 추적 (텍소노미: GA4 web이벤트 리스트) -->
+<script>
+(function () {
+  function track(name, params) {
+    if (typeof gtag === 'function') gtag('event', name, params);
+  }
+
+  // 메인 영역 구분: 특가 / 베스트
+  function sectionOf(el) {
+    if (el.closest('#today-deal-list')) return '특가';
+    if (el.closest('#best-product-list')) return '베스트';
+    return null;
+  }
+  var CARD_SEL = '#today-deal-list .deal-card, #best-product-list .best-card';
+
+  // 1) promotion_click — 시원 할인 프로모션 배너
+  // 2) item_click — 메인 특가/베스트 제품 클릭
+  // 3) add_to_cart / 4) purchase — 상품 상세 버튼
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+
+    var promo = t.closest('#event-banner-summer');
+    if (promo) track('promotion_click', { promotion_name: '시원 할인 프로모션' });
+
+    var card = t.closest(CARD_SEL);
+    if (card) track('item_click', { item_name: card.dataset.productName, section: sectionOf(card) });
+
+    var btn = t.closest('#btn-add-to-cart-detail, #btn-buy-now');
+    if (btn) {
+      var product = PRODUCTS.find(function (p) { return p.id === btn.dataset.productId; });
+      if (!product) return;
+      var v = getVariant(product, selectedVariantId);
+      track(btn.id === 'btn-buy-now' ? 'purchase' : 'add_to_cart', {
+        currency: 'KRW',
+        item_name: product.name,
+        item_option: v.label,
+        value: v.price * detailQty
+      });
+    }
+  }, true);
+
+  // 5) item_view — 메인 특가/베스트 제품 노출 (50% 이상 보일 때, 제품당 1회)
+  if (!('IntersectionObserver' in window)) return;
+  var seen = {};
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      var el = en.target, section = sectionOf(el);
+      var key = section + ':' + el.dataset.productId;
+      io.unobserve(el);
+      if (seen[key]) return;
+      seen[key] = true;
+      track('item_view', { item_name: el.dataset.productName, section: section });
+    });
+  }, { threshold: 0.5 });
+
+  function observeCards() {
+    document.querySelectorAll(CARD_SEL).forEach(function (el) {
+      if (!el.dataset.gaObserved) { el.dataset.gaObserved = '1'; io.observe(el); }
+    });
+  }
+  observeCards();
+  ['today-deal-list', 'best-product-list'].forEach(function (id) {
+    var box = document.getElementById(id);
+    if (box) new MutationObserver(observeCards).observe(box, { childList: true });
+  });
+})();
+</script>
 </body>
 </html>
