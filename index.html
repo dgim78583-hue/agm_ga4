@@ -1,13 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<!-- Google Tag Manager -->
-<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-})(window,document,'script','dataLayer','GTM-M6MGKR8Q');</script>
-<!-- End Google Tag Manager -->
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-SZ7VDLYWHF"></script>
 <script>
@@ -436,10 +429,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   </style>
 </head>
 <body>
-<!-- Google Tag Manager (noscript) -->
-<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M6MGKR8Q"
-height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
-<!-- End Google Tag Manager (noscript) -->
 
 <!-- ══ HEADER ══ -->
 <header id="site-header">
@@ -2308,6 +2297,16 @@ handleRoute();   // 최초 진입 경로 처리 (딥링크·새로고침 대응)
 
     var promo = t.closest('#event-banner-summer');
     if (promo) track('promotion_click', { promotion_name: '시원 할인 프로모션' });
+
+    // go_to_wishlist — 상단 하트(찜 목록) 클릭
+    if (t.closest('#btn-wishlist-header')) {
+      track('go_to_wishlist', {
+        click_location: 'header',
+        page_type: (document.body.dataset.pageType || '').replace('product', 'product_detail').replace(/-/g, '_'),
+        wishlist_count: Number(document.getElementById('wishlist-count').textContent) || 0,
+        login_status: (document.body.dataset.loginStatus || 'logged-out').replace('-', '_')
+      });
+    }
 
     var card = t.closest(CARD_SEL);
     if (card) track('item_click', { item_name: card.dataset.productName, section: sectionOf(card) });
