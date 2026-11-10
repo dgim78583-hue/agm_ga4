@@ -2281,6 +2281,16 @@ handleRoute();   // 최초 진입 경로 처리 (딥링크·새로고침 대응)
     if (typeof gtag === 'function') gtag('event', name, params);
   }
 
+  // 상단 배너 공통 파라미터
+  function bannerParams(slide) {
+    return {
+      promotion_id: slide.dataset.bannerId,
+      promotion_name: slide.dataset.bannerTitle,
+      creative_slot: slide.dataset.bannerId,
+      location_id: 'top_banner'
+    };
+  }
+
   // 메인 영역 구분: 특가 / 베스트
   function sectionOf(el) {
     if (el.closest('#today-deal-list')) return '특가';
@@ -2322,6 +2332,10 @@ handleRoute();   // 최초 진입 경로 처리 (딥링크·새로고침 대응)
         });
       }
     }
+
+    // select_promotion — 상단 배너(히어로 캐러셀) CTA 클릭
+    var cta = t.closest('#hero .banner-cta');
+    if (cta) track('select_promotion', bannerParams(cta.closest('.banner-slide')));
 
     var card = t.closest(CARD_SEL);
     if (card) track('item_click', { item_name: card.dataset.productName, section: sectionOf(card) });
@@ -2365,6 +2379,19 @@ handleRoute();   // 최초 진입 경로 처리 (딥링크·새로고침 대응)
     var box = document.getElementById(id);
     if (box) new MutationObserver(observeCards).observe(box, { childList: true });
   });
+
+  // view_promotion — 상단 배너 슬라이드 노출 (50% 이상 보일 때, 슬라이드당 1회)
+  var bannerSeen = {};
+  var bio = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      var slide = en.target;
+      if (bannerSeen[slide.dataset.bannerId]) return;
+      bannerSeen[slide.dataset.bannerId] = true;
+      track('view_promotion', bannerParams(slide));
+    });
+  }, { threshold: 0.5 });
+  document.querySelectorAll('#hero .banner-slide').forEach(function (el) { bio.observe(el); });
 })();
 </script>
 </body>
