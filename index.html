@@ -2354,6 +2354,17 @@ handleRoute();   // 최초 진입 경로 처리 (딥링크·새로고침 대응)
     }
   }, true);
 
+  // search — 상단 검색창 검색 실행 (빈 검색어 제외)
+  document.addEventListener('submit', function (e) {
+    if (e.target.id !== 'search-form') return;
+    var term = document.getElementById('search-input').value.trim();
+    if (!term) return;
+    track('search', {
+      search_term: term,
+      search_result_count: searchProducts(term).length
+    });
+  }, true);
+
   // 5) item_view — 메인 특가/베스트 제품 노출 (50% 이상 보일 때, 제품당 1회)
   if (!('IntersectionObserver' in window)) return;
   var seen = {};
